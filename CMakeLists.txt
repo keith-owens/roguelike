@@ -13,6 +13,7 @@ LINK_DIRECTORIES(
 
 add_executable(roguelike-tutorial
     src/external/flecs/flecs.c
+    src/external/stb/stb_ds.c
     src/main.c
 )
 
