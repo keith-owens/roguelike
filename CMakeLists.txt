@@ -21,6 +21,7 @@ add_executable(roguelike-tutorial
     src/player.c
     src/rect.c
     src/util.c
+    src/visibility_system.c
 )
 
 target_link_libraries(roguelike-tutorial

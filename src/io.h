@@ -12,7 +12,7 @@
 typedef struct Resources {
     TCOD_Console* console;
     TCOD_Context* context;
-    enum TileType* map;
+    Map* map;
 } Resources;
 
 typedef struct InputEvents {
@@ -27,6 +27,7 @@ extern InputEvents input_events;
 void input(ecs_iter_t* it);
 void begin_draw(ecs_iter_t* it);
 void draw_console(ecs_iter_t* it);
+void draw_map(ecs_iter_t* it);
 void end_draw(ecs_iter_t* it);
 
 #endif

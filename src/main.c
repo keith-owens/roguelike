@@ -9,6 +9,7 @@
 #include "io.h"
 #include "map.h"
 #include "player.h"
+#include "visibility_system.h"
 
 int main(int argc, char* argv[]) {
     // Give the world a seed
@@ -32,8 +33,8 @@ int main(int argc, char* argv[]) {
     TCOD_Context* context;
     TCOD_context_new(&params, &context);
 
-    MapInfo map_info = new_map_rooms_and_corridors();
-    Resources world_resources = { console, context, map_info.map };
+    Map map = new_map_rooms_and_corridors();
+    Resources world_resources = { console, context, &map };
 
     // Setup ecs
     ecs_world_t* world = ecs_init();
@@ -55,22 +56,25 @@ int main(int argc, char* argv[]) {
     // Add the components to the world
     ECS_COMPONENT_DEFINE(world, Position);
     ECS_COMPONENT_DEFINE(world, Renderable);
-    ECS_TAG(world, Player);
+    ECS_COMPONENT_DEFINE(world, Viewshed);
+    ECS_TAG_DEFINE(world, Player);
 
     // Add the systems to the world
     ECS_SYSTEM(world, input, TakeInput, 0);
     ECS_SYSTEM(world, begin_draw, BeforeDraw, 0);
     ECS_SYSTEM(world, draw_console, DrawEntities, Position, Renderable);
-    ECS_SYSTEM(world, draw_map, DrawMap, 0);
+    ECS_SYSTEM(world, draw_map, DrawMap, Viewshed, Player);
     ECS_SYSTEM(world, end_draw, AfterDraw, 0);
-    ECS_SYSTEM(world, player_input, OnUpdate, Position, Player);
+    ECS_SYSTEM(world, player_input, OnUpdate, Position, Viewshed, Player);
+    ECS_SYSTEM(world, visiblity_system, OnUpdate, Viewshed, Position, Player);
 
     // Create entities
     ecs_entity_t e = ecs_new_id(world);
 
-    Point player_position = center(&map_info.rooms[0]);
-    ecs_set(world, e, Position, { .x=player_position.x, .y=player_position.y});
-    ecs_set(world, e, Renderable, { .glyph="@", .fg=TCOD_yellow, .bg=TCOD_black});
+    Point player_position = center(&map.rooms[0]);
+    ecs_set(world, e, Position, { .x=player_position.x, .y=player_position.y });
+    ecs_set(world, e, Renderable, { .glyph="@", .fg=TCOD_yellow, .bg=TCOD_black });
+    ecs_set(world, e, Viewshed, { .visible_tiles=NULL, .range=8, .dirty=true });
     ecs_add_id(world, e, Player);
     
     ecs_set_target_fps(world, 60.0f);
@@ -78,8 +82,19 @@ int main(int argc, char* argv[]) {
     // Main game loop
     while (ecs_progress(world, 0)) {}
 
-    arrfree(map_info.map);
-    arrfree(map_info.rooms);
+    // Clean up the dynamic arrays in Viewshed components
+    ecs_iter_t it = ecs_term_iter(world, &(ecs_term_t){ ecs_id(Viewshed) });
+    while (ecs_term_next(&it)) {
+        Viewshed* v = ecs_term(&it, Viewshed, 1);
+
+        for (int i = 0; i < it.count; i++) {
+            arrfree(v[i].visible_tiles);
+        }
+    }
+
+    // Clean up the data used in the game
+    arrfree(map.tiles);
+    arrfree(map.rooms);
     TCOD_console_delete(console);
     TCOD_context_delete(context);
     ecs_fini(world);

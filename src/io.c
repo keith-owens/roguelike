@@ -49,6 +49,56 @@ void draw_console(ecs_iter_t* it) {
     }
 }
 
+void draw_map(ecs_iter_t* it) {
+    Viewshed* v = ecs_term(it, Viewshed, 1);
+    Resources* r = ecs_get_context(it->world);
+
+    for (int i = 0; i < it->count; i++) {
+        int x = 0;
+        int y = 0;
+        
+        for (int i = 0; i < r->map->width * r->map->height; i++) {
+            bool point_found = false;
+            for (int p = 0; p < arrlen(v->visible_tiles); p++) {
+                if (x == v->visible_tiles[p].x && y == v->visible_tiles[p].y) {
+                    point_found = true;
+                }
+            }
+            
+            if (point_found) {
+                if (r->map->tiles[i] == Floor) {
+                    TCOD_console_set_default_foreground(r->console, TCOD_cyan);
+                    TCOD_console_set_default_background(r->console, TCOD_black);
+                    TCOD_console_printf(r->console, x, y, ".");
+                }
+                if (r->map->tiles[i] == Wall) {
+                    TCOD_console_set_default_foreground(r->console, TCOD_green);
+                    TCOD_console_set_default_background(r->console, TCOD_black);
+                    TCOD_console_printf(r->console, x, y, "#");
+                }
+            }
+            else if (r->map->revealed_tiles[i]) {
+                if (r->map->tiles[i] == Floor) {
+                    TCOD_console_set_default_foreground(r->console, TCOD_gray);
+                    TCOD_console_set_default_background(r->console, TCOD_black);
+                    TCOD_console_printf(r->console, x, y, ".");
+                }
+                if (r->map->tiles[i] == Wall) {
+                    TCOD_console_set_default_foreground(r->console, TCOD_gray);
+                    TCOD_console_set_default_background(r->console, TCOD_black);
+                    TCOD_console_printf(r->console, x, y, "#");
+                }
+            }
+
+            x += 1;
+            if (x > 79) {
+                x = 0;
+                y += 1;
+            }
+        }    
+    }
+}
+
 void end_draw(ecs_iter_t* it) {
     Resources* r = ecs_get_context(it->world);
     TCOD_context_present(r->context, r->console, NULL);
