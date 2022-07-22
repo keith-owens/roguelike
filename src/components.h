@@ -19,16 +19,22 @@ typedef struct Renderable {
 typedef struct Viewshed {
     Point* visible_tiles;
     int range;
-    bool dirty;
 } Viewshed;
+
+typedef struct Name {
+    char* name;
+} Name;
 
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(Renderable);
 extern ECS_COMPONENT_DECLARE(Viewshed);
+extern ECS_COMPONENT_DECLARE(Name);
 
 // Tags
 ecs_entity_t Player;
+ecs_entity_t Monster;
 
 extern ECS_TAG_DECLARE(Player);
+extern ECS_TAG_DECLARE(Monster);
 
 #endif

@@ -1,12 +1,15 @@
 #include "io.h"
 
 InputEvents input_events;
+bool paused;
 
 void input(ecs_iter_t* it) {
     input_events.move_up = false;
     input_events.move_down = false;
     input_events.move_left = false;
     input_events.move_right = false;
+
+    paused = false;
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -28,6 +31,10 @@ void input(ecs_iter_t* it) {
                 break;
         }
     }
+
+    if (input_events.move_up || input_events.move_down || input_events.move_left || input_events.move_right) {
+        paused = true;
+    }
 }
 
 void begin_draw(ecs_iter_t* it) {
@@ -43,59 +50,58 @@ void draw_console(ecs_iter_t* it) {
 
     for (int i = 0; i < it->count; i++)
     {
-        TCOD_console_set_default_foreground(resources->console, r[i].fg);
-        TCOD_console_set_default_background(resources->console, r[i].bg);
-        TCOD_console_printf(resources->console, p[i].x, p[i].y, r[i].glyph);
+        if (arrlen(resources->map->visible_tiles) > 0 && resources->map->visible_tiles[xy_index(p[i].x, p[i].y)]) {
+            TCOD_console_set_default_foreground(resources->console, r[i].fg);
+            TCOD_console_set_default_background(resources->console, r[i].bg);
+            TCOD_console_printf(resources->console, p[i].x, p[i].y, r[i].glyph);
+        }
     }
 }
 
 void draw_map(ecs_iter_t* it) {
-    Viewshed* v = ecs_term(it, Viewshed, 1);
     Resources* r = ecs_get_context(it->world);
 
-    for (int i = 0; i < it->count; i++) {
-        int x = 0;
-        int y = 0;
+    int x = 0;
+    int y = 0;
+    
+    for (int i = 0; i < r->map->width * r->map->height; i++) {
+        bool point_found = false;
+        for (int p = 0; p < arrlen(r->map->visible_tiles); p++) {
+            if (r->map->visible_tiles[xy_index(x, y)]) {
+                point_found = true;
+            }
+        }
         
-        for (int i = 0; i < r->map->width * r->map->height; i++) {
-            bool point_found = false;
-            for (int p = 0; p < arrlen(v->visible_tiles); p++) {
-                if (x == v->visible_tiles[p].x && y == v->visible_tiles[p].y) {
-                    point_found = true;
-                }
+        if (point_found) {
+            if (r->map->tiles[i] == Floor) {
+                TCOD_console_set_default_foreground(r->console, TCOD_cyan);
+                TCOD_console_set_default_background(r->console, TCOD_black);
+                TCOD_console_printf(r->console, x, y, ".");
             }
-            
-            if (point_found) {
-                if (r->map->tiles[i] == Floor) {
-                    TCOD_console_set_default_foreground(r->console, TCOD_cyan);
-                    TCOD_console_set_default_background(r->console, TCOD_black);
-                    TCOD_console_printf(r->console, x, y, ".");
-                }
-                if (r->map->tiles[i] == Wall) {
-                    TCOD_console_set_default_foreground(r->console, TCOD_green);
-                    TCOD_console_set_default_background(r->console, TCOD_black);
-                    TCOD_console_printf(r->console, x, y, "#");
-                }
+            if (r->map->tiles[i] == Wall) {
+                TCOD_console_set_default_foreground(r->console, TCOD_green);
+                TCOD_console_set_default_background(r->console, TCOD_black);
+                TCOD_console_printf(r->console, x, y, "#");
             }
-            else if (r->map->revealed_tiles[i]) {
-                if (r->map->tiles[i] == Floor) {
-                    TCOD_console_set_default_foreground(r->console, TCOD_gray);
-                    TCOD_console_set_default_background(r->console, TCOD_black);
-                    TCOD_console_printf(r->console, x, y, ".");
-                }
-                if (r->map->tiles[i] == Wall) {
-                    TCOD_console_set_default_foreground(r->console, TCOD_gray);
-                    TCOD_console_set_default_background(r->console, TCOD_black);
-                    TCOD_console_printf(r->console, x, y, "#");
-                }
+        }
+        else if (r->map->revealed_tiles[i]) {
+            if (r->map->tiles[i] == Floor) {
+                TCOD_console_set_default_foreground(r->console, TCOD_gray);
+                TCOD_console_set_default_background(r->console, TCOD_black);
+                TCOD_console_printf(r->console, x, y, ".");
             }
+            if (r->map->tiles[i] == Wall) {
+                TCOD_console_set_default_foreground(r->console, TCOD_gray);
+                TCOD_console_set_default_background(r->console, TCOD_black);
+                TCOD_console_printf(r->console, x, y, "#");
+            }
+        }
 
-            x += 1;
-            if (x > 79) {
-                x = 0;
-                y += 1;
-            }
-        }    
+        x += 1;
+        if (x > 79) {
+            x = 0;
+            y += 1;
+        }
     }
 }
 

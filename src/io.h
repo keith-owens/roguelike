@@ -13,6 +13,7 @@ typedef struct Resources {
     TCOD_Console* console;
     TCOD_Context* context;
     Map* map;
+    Point* player_position;
 } Resources;
 
 typedef struct InputEvents {
@@ -23,6 +24,7 @@ typedef struct InputEvents {
 } InputEvents;
 
 extern InputEvents input_events;
+extern bool paused;
 
 void input(ecs_iter_t* it);
 void begin_draw(ecs_iter_t* it);
