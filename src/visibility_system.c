@@ -6,11 +6,16 @@ void visiblity_system(ecs_iter_t* it) {
     Resources* r = ecs_get_context(it->world);
 
     for (int i = 0; i < it->count; i++) {
-        if (!v->dirty) continue; // if fov is not dirty it does not need to be updated
-
         if (arrlen(v[i].visible_tiles) > 0) {
             arrfree(v[i].visible_tiles);
             v[i].visible_tiles = NULL;
+        }
+
+        if (ecs_has_id(it->world, it->entities[i], Player)) {
+            for (int j = 0; j < arrlen(r->map->visible_tiles); j++)
+            {
+                r->map->visible_tiles[j] = false;
+            }
         }
 
         TCOD_Map* fov_map = TCOD_map_new(r->map->width, r->map->height);
@@ -31,12 +36,11 @@ void visiblity_system(ecs_iter_t* it) {
                     Point point = {x, y};
                     arrpush(v[i].visible_tiles, point);
                     if (ecs_has_id(it->world, it->entities[i], Player)) {
+                        r->map->visible_tiles[xy_index(x, y)] = true;
                         r->map->revealed_tiles[xy_index(x, y)] = true;
                     }
                 }
             }
         }
-
-        v->dirty = false;
     }
 }

@@ -18,6 +18,7 @@ add_executable(roguelike-tutorial
     src/io.c
     src/main.c
     src/map.c
+    src/monster_ai_system.c
     src/player.c
     src/rect.c
     src/util.c

@@ -54,7 +54,13 @@ Map new_map_rooms_and_corridors(void) {
         revealed[j] = false;
     }
 
-    return (Map){ tiles, rooms, map_width, map_height, revealed };
+    bool* visible = NULL;
+    arrsetlen(visible, map_width * map_height);
+    for (int k = 0; k < arrlen(visible); k++) {
+        visible[k] = false;
+    }
+
+    return (Map){ tiles, rooms, map_width, map_height, revealed, visible };
 }
 
 void apply_room_to_map(Rect* room, TileType* tiles) {

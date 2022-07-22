@@ -8,19 +8,20 @@ void player_input(ecs_iter_t* it) {
     for (int i = 0; i < it->count; i++) {
         if (input_events.move_up) {
             try_move_player(0, -1, p, r->map->tiles);
-            v->dirty = true;
         }
         if (input_events.move_down) {
             try_move_player(0, 1, p, r->map->tiles);
-            v->dirty = true;
         }
         if (input_events.move_left) {
             try_move_player(-1, 0 , p, r->map->tiles);
-            v->dirty = true;
         }
         if (input_events.move_right) {
             try_move_player(1, 0 , p, r->map->tiles);
-            v->dirty = true;
+        }
+        
+        if (it->count == 1) {
+            r->player_position->x = p[i].x;
+            r->player_position->y = p[i].y;
         }
     }
 }
