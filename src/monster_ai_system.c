@@ -50,6 +50,7 @@ void monster_ai(ecs_iter_t* it) {
                         p[i].x = new_x;
                         p[i].y = new_y;
                         v[i].dirty = true;
+                        r->map->blocked[xy_index(new_x, new_y)] = true;
                     }
                 }
             }

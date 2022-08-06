@@ -7,13 +7,16 @@
 #include <stdbool.h>
 
 #include "components.h"
+#include "game_log.h"
 #include "map.h"
+#include "util.h"
 
 typedef struct Resources {
     TCOD_Console* console;
     TCOD_Context* context;
     Map* map;
     Point* player_position;
+    GameLog* game_log;
 } Resources;
 
 typedef struct InputEvents {
@@ -34,6 +37,8 @@ void input(ecs_iter_t* it);
 void begin_draw(ecs_iter_t* it);
 void draw_console(ecs_iter_t* it);
 void draw_map(ecs_iter_t* it);
+void draw_ui(ecs_iter_t* it);
+void draw_tooltips(ecs_world_t* world, Resources* resources);
 void end_draw(ecs_iter_t* it);
 
 #endif
