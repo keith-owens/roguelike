@@ -1,4 +1,5 @@
 #include "external/flecs/flecs.h"
+#include "external./klib/kstring.h"
 #include <libtcod.h>
 #include <SDL.h>
 #include "stb_ds.h"
@@ -76,6 +77,7 @@ int main(int argc, char* argv[]) {
     ECS_SYSTEM(world, begin_draw, BeforeDraw, 0);
     ECS_SYSTEM(world, draw_console, DrawEntities, Position, Renderable);
     ECS_SYSTEM(world, draw_map, DrawMap, 0);
+    ECS_SYSTEM(world, draw_ui, DrawMap, 0);
     ECS_SYSTEM(world, end_draw, AfterDraw, 0);
     ECS_SYSTEM(world, player_input, PlayerTurn, Position, Viewshed, CombatStats, MeleeAttacker, Player);
     ECS_SYSTEM(world, visiblity_system, PostTurn, Viewshed, Position);
@@ -83,7 +85,7 @@ int main(int argc, char* argv[]) {
     ECS_SYSTEM(world, map_indexing_system, PostTurn, Position);
     ECS_SYSTEM(world, melee_combat_system, PostTurn, MeleeAttacker, Name, CombatStats);
     ECS_SYSTEM(world, damage_system, ResolveStep, CombatStats);
-    ECS_SYSTEM(world, delete_the_dead, CleanUp, CombatStats);
+    ECS_SYSTEM(world, delete_the_dead, CleanUp, CombatStats, Name);
 
     // Create player entity
     ecs_entity_t e = ecs_new_id(world);
@@ -94,7 +96,7 @@ int main(int argc, char* argv[]) {
     ecs_set(world, e, Viewshed, { .visible_tiles=NULL, .range=8, .dirty=true});
     ecs_set(world, e, CombatStats, { .max_hp=30, .hp=30, .defense=2, .power=5, .damage_taken=0 });
     ecs_set(world, e, MeleeAttacker, { .wants_to_melee=false, .target=NULL });
-    ecs_set(world, e, Name, { .name="player", .value=1});
+    ecs_set(world, e, Name, { .name="Player" });
     ecs_add_id(world, e, Player);
 
     // Create enemies - Skip first room
@@ -110,18 +112,24 @@ int main(int argc, char* argv[]) {
         int roll = random_in_range(1, 2);
         if (roll == 1) {
             glyph = "g";
-            name = "Goblin";
+            kstring_t name_builder = { 0, 0, NULL };
+            kputs("Goblin", &name_builder);
+            kputuw(i, &name_builder);
+            name = name_builder.s;
         }
         else {
             glyph = "o";
-            name = "Orc";
+            kstring_t name_builder = { 0, 0, NULL };
+            kputs("Orc", &name_builder);
+            kputuw(i, &name_builder);
+            name = name_builder.s;
         }
 
         ecs_entity_t enemy = ecs_new_id(world);
         ecs_set(world, enemy, Position, { .x=x, .y=y });
         ecs_set(world, enemy, Renderable, { .glyph=glyph, .fg=TCOD_red, .bg=TCOD_black });
         ecs_set(world, enemy, Viewshed, { .visible_tiles=NULL, .range=8, .dirty=true });
-        ecs_set(world, enemy, Name, { .name=name, .value=i });
+        ecs_set(world, enemy, Name, { .name=name });
         ecs_set(world, enemy, CombatStats, { .max_hp=16, .hp=16, .defense=1, .power=4, .damage_taken=0 });
         ecs_set(world, enemy, MeleeAttacker, { .wants_to_melee=false, .target=NULL });
         ecs_add_id(world, enemy, Monster);
@@ -131,7 +139,10 @@ int main(int argc, char* argv[]) {
     ecs_set_target_fps(world, 60.0f);
 
     // Set the context needed for rendering
-    Resources world_resources = { console, context, &map, &player_position };
+    GameLog game_log;
+    game_log.entries = NULL;
+    arrpush(game_log.entries, "Welcome to this C roguelike.");
+    Resources world_resources = { console, context, &map, &player_position, &game_log };
     ecs_set_context(world, &world_resources);
 
     // Main game loop

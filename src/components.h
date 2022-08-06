@@ -24,7 +24,6 @@ typedef struct Viewshed {
 
 typedef struct Name {
     char* name;
-    int value;
 } Name;
 
 typedef struct CombatStats {

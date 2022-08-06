@@ -8,6 +8,10 @@
 #include "rect.h"
 #include "util.h"
 
+#define MAP_WIDTH 80
+#define MAP_HEIGHT 43
+#define MAP_COUNT MAP_WIDTH*MAP_HEIGHT
+
 typedef enum { Wall, Floor } TileType;
 
 typedef struct Map {

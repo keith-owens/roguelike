@@ -90,6 +90,13 @@ void draw_map(ecs_iter_t* it) {
 
     int x = 0;
     int y = 0;
+
+    int mouse_x;
+    int mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+
+    mouse_x = (int)((float)mouse_x / 16.0f);
+    mouse_y = (int)((float)mouse_y / 16.0f);
     
     for (int i = 0; i < r->map->width * r->map->height; i++) {
         bool point_found = false;
@@ -103,11 +110,17 @@ void draw_map(ecs_iter_t* it) {
             if (r->map->tiles[i] == Floor) {
                 TCOD_console_set_default_foreground(r->console, TCOD_cyan);
                 TCOD_console_set_default_background(r->console, TCOD_black);
+                if (x == mouse_x && y == mouse_y) {
+                    TCOD_console_set_default_foreground(r->console, TCOD_magenta);
+                }
                 TCOD_console_printf(r->console, x, y, ".");
             }
             if (r->map->tiles[i] == Wall) {
                 TCOD_console_set_default_foreground(r->console, TCOD_green);
                 TCOD_console_set_default_background(r->console, TCOD_black);
+                if (x == mouse_x && y == mouse_y) {
+                    TCOD_console_set_default_foreground(r->console, TCOD_magenta);
+                }
                 TCOD_console_printf(r->console, x, y, "#");
             }
         }
@@ -130,6 +143,91 @@ void draw_map(ecs_iter_t* it) {
             y += 1;
         }
     }
+}
+
+void draw_ui(ecs_iter_t* it) {
+    Resources* r = ecs_get_context(it->world);
+
+    CombatStats* player_stats;
+
+    ecs_filter_t f;
+    ecs_filter_init(it->world, &f, &(ecs_filter_desc_t) {
+        .terms = {
+            { ecs_id(CombatStats) },
+            { Player }
+        }
+     });
+    ecs_iter_t iter = ecs_filter_iter(it->world, &f);
+    while (ecs_filter_next(&iter)) {
+        CombatStats* c = ecs_term(&iter, CombatStats, 1);
+
+        for (int i = 0; i < iter.count; i++) {
+            player_stats = c;
+        }
+    }
+    ecs_filter_fini(&f);
+
+    // Health bar
+    TCOD_console_draw_rect_rgb(r->console, 0, 43, 20, 1, 0, NULL, &TCOD_dark_red, TCOD_BKGND_SET);
+    float health_proportion = (((float)player_stats->hp/(float)player_stats->max_hp)*20.0f);
+    TCOD_console_draw_rect_rgb(r->console, 0, 43, (int)health_proportion, 1, 0, NULL, &TCOD_dark_green, TCOD_BKGND_SET);
+
+    TCOD_console_set_default_foreground(r->console, TCOD_white);
+    TCOD_console_printf_rect(r->console, 0, 43, 20, 1, "HP: %d/%d", player_stats->hp, player_stats->max_hp);
+
+    int y = 43;
+    for (int i = arrlen(r->game_log->entries) - 1; i >= 0; i--) {
+        if (y < 50) {
+            TCOD_console_printf(r->console, 21, y, r->game_log->entries[i]);
+        }
+        y += 1;
+    }
+
+    draw_tooltips(it->world, r);
+}
+
+void draw_tooltips(ecs_world_t* world, Resources* resources) {
+    int mouse_x;
+    int mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+
+    mouse_x = (int)((float)mouse_x / 16.0f);
+    mouse_y = (int)((float)mouse_y / 16.0f);
+
+    if (mouse_x >= resources->map->width || mouse_y >= resources->map->height) {
+        return;
+    }
+
+    char** tooltip = NULL;
+
+    ecs_filter_t f;
+    ecs_filter_init(world, &f, &(ecs_filter_desc_t) {
+        .terms = {
+            { ecs_id(Position) },
+            { ecs_id(Name) }
+        }
+     });
+    ecs_iter_t iter = ecs_filter_iter(world, &f);
+    while (ecs_filter_next(&iter)) {
+        Position* p = ecs_term(&iter, Position, 1);
+        Name* n = ecs_term(&iter, Name, 2);
+
+        for (int i = 0; i < iter.count; i++) {
+            int idx = xy_index(p[i].x, p[i].y);
+            if (p[i].x == mouse_x && p[i].y == mouse_y && resources->map->visible_tiles[idx]) {
+                arrpush(tooltip, n[i].name);
+            }
+        }
+
+        if (arrlen(tooltip) > 0) {
+            for (int j = 0; j < arrlen(tooltip); j++)
+            {
+                char* something = tooltip[j];
+                TCOD_console_printf(resources->console, 0, 44, tooltip[j]);
+            }
+        }
+    }
+    ecs_filter_fini(&f);
 }
 
 void end_draw(ecs_iter_t* it) {
