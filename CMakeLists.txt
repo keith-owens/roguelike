@@ -15,9 +15,12 @@ add_executable(roguelike-tutorial
     src/external/flecs/flecs.c
     src/external/stb/stb_ds.c
     src/components.c
+    src/damage_system.c
     src/io.c
     src/main.c
     src/map.c
+    src/map_indexing_system.c
+    src/melee_combat_system.c
     src/monster_ai_system.c
     src/player.c
     src/rect.c

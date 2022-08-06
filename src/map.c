@@ -60,7 +60,13 @@ Map new_map_rooms_and_corridors(void) {
         visible[k] = false;
     }
 
-    return (Map){ tiles, rooms, map_width, map_height, revealed, visible };
+    bool* blocked = NULL;
+    arrsetlen(blocked, map_width * map_height);
+    for (int j = 0; j < arrlen(blocked); j++) {
+        blocked[j] = tiles[j] == Wall;
+    }
+
+    return (Map){ tiles, rooms, map_width, map_height, revealed, visible, blocked };
 }
 
 void apply_room_to_map(Rect* room, TileType* tiles) {
@@ -86,5 +92,12 @@ void apply_vertical_tunnel(TileType* tiles, int y1, int y2, int x) {
         if (index > 0 && index < 80*50) {
             tiles[index] = Floor;
         }
+    }
+}
+
+void populate_blocked(Map* map) {
+    for (int i = 0; i < arrlen(map->blocked); i++)
+    {
+        map->blocked[i] = map->tiles[i] == Wall;
     }
 }

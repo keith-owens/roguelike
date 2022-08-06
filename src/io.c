@@ -8,6 +8,10 @@ void input(ecs_iter_t* it) {
     input_events.move_down = false;
     input_events.move_left = false;
     input_events.move_right = false;
+    input_events.move_up_right = false;
+    input_events.move_up_left = false;
+    input_events.move_down_right = false;
+    input_events.move_down_left = false;
 
     paused = false;
 
@@ -20,19 +24,42 @@ void input(ecs_iter_t* it) {
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE)
                     ecs_quit(it->world);
-                if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_KP_8 || event.key.keysym.sym == SDLK_k)
+                if (event.key.keysym.sym == SDLK_UP ||
+                    event.key.keysym.sym == SDLK_KP_8 ||
+                    event.key.keysym.sym == SDLK_k)
                     input_events.move_up = true;
-                if (event.key.keysym.sym == SDLK_DOWN || event.key.keysym.sym == SDLK_KP_2 || event.key.keysym.sym == SDLK_j)
+                if (event.key.keysym.sym == SDLK_DOWN ||
+                    event.key.keysym.sym == SDLK_KP_2 ||
+                    event.key.keysym.sym == SDLK_j)
                     input_events.move_down = true;
-                if (event.key.keysym.sym == SDLK_LEFT || event.key.keysym.sym == SDLK_KP_4 || event.key.keysym.sym == SDLK_h)
+                if (event.key.keysym.sym == SDLK_LEFT ||
+                    event.key.keysym.sym == SDLK_KP_4 ||
+                    event.key.keysym.sym == SDLK_h)
                     input_events.move_left = true;
-                if (event.key.keysym.sym == SDLK_RIGHT || event.key.keysym.sym == SDLK_KP_6 || event.key.keysym.sym == SDLK_l)
+                if (event.key.keysym.sym == SDLK_RIGHT ||
+                    event.key.keysym.sym == SDLK_KP_6 ||
+                    event.key.keysym.sym == SDLK_l)
                     input_events.move_right = true;
+                
+                // Diagonals
+                if (event.key.keysym.sym == SDLK_KP_9 ||
+                    event.key.keysym.sym == SDLK_y)
+                    input_events.move_up_right = true;
+                if (event.key.keysym.sym == SDLK_KP_7 ||
+                    event.key.keysym.sym == SDLK_u)
+                    input_events.move_up_left = true;
+                if (event.key.keysym.sym == SDLK_KP_3 ||
+                    event.key.keysym.sym == SDLK_n)
+                    input_events.move_down_right = true;
+                if (event.key.keysym.sym == SDLK_KP_1 ||
+                    event.key.keysym.sym == SDLK_b)
+                    input_events.move_down_left = true;
                 break;
         }
     }
 
-    if (input_events.move_up || input_events.move_down || input_events.move_left || input_events.move_right) {
+    if (input_events.move_up || input_events.move_down || input_events.move_left || input_events.move_right ||
+        input_events.move_up_right || input_events.move_up_left || input_events.move_down_right || input_events.move_down_left) {
         paused = true;
     }
 }
