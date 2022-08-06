@@ -6,6 +6,8 @@ void visiblity_system(ecs_iter_t* it) {
     Resources* r = ecs_get_context(it->world);
 
     for (int i = 0; i < it->count; i++) {
+        if (!v[i].dirty) continue;
+
         if (arrlen(v[i].visible_tiles) > 0) {
             arrfree(v[i].visible_tiles);
             v[i].visible_tiles = NULL;
@@ -24,7 +26,7 @@ void visiblity_system(ecs_iter_t* it) {
                 bool is_transparent = r->map->tiles[xy_index(x, y)] == Floor;
                 TCOD_map_set_properties(fov_map, x, y,
                                         is_transparent,
-                                        r->map->tiles[xy_index(x, y)] == Wall);
+                                        !r->map->tiles[xy_index(x, y)] == Wall);
             }
         }
 
@@ -42,5 +44,9 @@ void visiblity_system(ecs_iter_t* it) {
                 }
             }
         }
+
+        TCOD_map_delete(fov_map);
+
+        v[i].dirty = false;
     }
 }

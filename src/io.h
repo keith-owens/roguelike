@@ -21,6 +21,10 @@ typedef struct InputEvents {
     bool move_down;
     bool move_left;
     bool move_right;
+    bool move_up_right;
+    bool move_up_left;
+    bool move_down_right;
+    bool move_down_left;
 } InputEvents;
 
 extern InputEvents input_events;

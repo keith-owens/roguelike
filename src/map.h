@@ -17,6 +17,7 @@ typedef struct Map {
     int height;
     bool* revealed_tiles;
     bool* visible_tiles;
+    bool* blocked;
 } Map;
 
 int xy_index(int x, int y);
@@ -25,5 +26,6 @@ Map new_map_rooms_and_corridors(void);
 void apply_room_to_map(Rect* room, TileType* tiles);
 void apply_horizontal_tunnel(TileType* tiles, int x1, int x2, int y);
 void apply_vertical_tunnel(TileType* tiles, int y1, int y2, int x);
+void populate_blocked(Map* map);
 
 #endif
