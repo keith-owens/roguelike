@@ -9,5 +9,6 @@
 
 void player_input(ecs_iter_t* it);
 void try_move_player(int delta_x, int delta_y, Position* position, CombatStats* combat_stats, MeleeAttacker* melee_attacker, Map* map, ecs_world_t* world, ecs_entity_t player);
+void get_item(ecs_world_t* world, ItemPickup* ip, GameLog* game_log);
 
 #endif

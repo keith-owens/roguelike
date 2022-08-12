@@ -5,12 +5,13 @@ void player_input(ecs_iter_t* it) {
     Viewshed* v = ecs_term(it, Viewshed, 2);
     CombatStats* c = ecs_term(it, CombatStats, 3);
     MeleeAttacker* m = ecs_term(it, MeleeAttacker, 4);
+    ItemPickup* ip = ecs_term(it, ItemPickup, 5);
     Resources* r = ecs_get_context(it->world);
 
     for (int i = 0; i < it->count; i++) {
         if (input_events.move_up) {
             try_move_player(0, -1, p, c, m, r->map, it->world, it->entities[i]);
-            v[i].dirty = true;
+        v[i].dirty = true;
         }
         if (input_events.move_down) {
             try_move_player(0, 1, p, c, m, r->map, it->world, it->entities[i]);
@@ -40,6 +41,10 @@ void player_input(ecs_iter_t* it) {
         if (input_events.move_down_left) {
             try_move_player(-1, 1 , p, c, m, r->map, it->world, it->entities[i]);
             v[i].dirty = true;
+        }
+
+        if (input_events.pickup) {
+            get_item(it->world, ip, r->game_log);
         }
 
         if (it->count == 1) {
@@ -78,5 +83,36 @@ void try_move_player(int delta_x, int delta_y, Position* position, CombatStats* 
     if (!map->blocked[destination_index]) {
         position->x = MIN(79, MAX(0, position->x + delta_x));
         position->y = MIN(49, MAX(0, position->y + delta_y));
+    }
+}
+
+void get_item(ecs_world_t* world, ItemPickup* ip, GameLog* game_log) {
+    ecs_entity_t target_item = NULL;
+    ecs_filter_t f;
+    ecs_filter_init(world, &f, &(ecs_filter_desc_t) {
+        .terms = {
+            { ecs_id(Position) },
+            { Item }
+        }
+     });
+    ecs_iter_t it = ecs_filter_iter(world, &f);
+    while (ecs_filter_next(&it)) {
+        Position* p = ecs_term(&it, Position, 1);
+
+        Resources* r = ecs_get_context(world);
+
+        for (int i = 0; i < it.count; i++) {
+            if (p[i].x == r->player_position->x && p[i].y && r->player_position->y) {
+                target_item = it.entities[i];
+            }
+        }
+    }
+    ecs_filter_fini(&f);
+
+    if (target_item == NULL) {
+        arrpush(game_log->entries, "There is nothing here to pick up.");
+    } else {
+        ip->wants_to_pickup = true;
+        ip->item = target_item;
     }
 }
