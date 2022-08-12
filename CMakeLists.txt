@@ -17,6 +17,7 @@ add_executable(roguelike-tutorial
     src/external/stb/stb_ds.c
     src/components.c
     src/damage_system.c
+    src/inventory_system.c
     src/io.c
     src/main.c
     src/map.c
@@ -24,7 +25,9 @@ add_executable(roguelike-tutorial
     src/melee_combat_system.c
     src/monster_ai_system.c
     src/player.c
+    src/potion_use_system.c
     src/rect.c
+    src/spawner.c
     src/util.c
     src/visibility_system.c
 )
